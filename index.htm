@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>16x16 5050 WiFi Clock</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-color: #e2e8f0;
+            --text-muted: #94a3b8;
+            --accent-color: #38bdf8;
+            --accent-hover: #0ea5e9;
+            --border-color: #334155;
+            --warning-bg: #451a03;
+            --warning-border: #d97706;
+            --warning-text: #fde68a;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            margin: 0;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: var(--accent-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .header-img {
+            max-width: 50%;
+            height: auto;
+            border-radius: 8px;
+            margin-top: 1rem;
+            border: 1px solid var(--border-color);
+        }
+
+        section {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem 2rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            color: var(--accent-color);
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 0.5rem;
+            margin-top: 0;
+        }
+
+        ul {
+            padding-left: 1.5rem;
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+        }
+
+        a {
+            color: var(--accent-color);
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+            color: var(--accent-hover);
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 600px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Thumbnail Galleries */
+        .thumb-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .thumb-card {
+            background-color: #0f172a;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.75rem;
+            text-align: center;
+        }
+
+        .thumb-card img {
+            width: 100%;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+            background-color: #334155;
+        }
+
+        .thumb-card span {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            display: block;
+        }
+
+        /* Collapsible Steps */
+        details {
+            background-color: #0f172a;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+            transition: background-color 0.2s;
+        }
+
+        details[open] {
+            border-color: var(--accent-color);
+        }
+
+        summary {
+            padding: 1rem 1.25rem;
+            font-weight: bold;
+            cursor: pointer;
+            color: var(--accent-color);
+            user-select: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        summary:hover {
+            background-color: rgba(56, 189, 248, 0.05);
+        }
+
+        .step-content {
+            padding: 1.25rem;
+            border-top: 1px solid var(--border-color);
+            background-color: var(--card-bg);
+        }
+
+        .warning-box {
+            background-color: var(--warning-bg);
+            border-left: 4px solid var(--warning-border);
+            color: var(--warning-text);
+            padding: 1rem;
+            border-radius: 4px;
+            margin: 1rem 0;
+            font-weight: 500;
+        }
+
+        code, pre {
+            background-color: #090d16;
+            border-radius: 6px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        }
+
+        pre {
+            padding: 1rem;
+            overflow-x: auto;
+            border: 1px solid var(--border-color);
+            color: #38bdf8;
+        }
+
+        .footer {
+            text-align: center;
+            color: var(--text-muted);
+            margin-top: 3rem;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <h1>16x16 5050 WiFi Clock</h1>
+            <p style="color: var(--text-muted);">A feature-packed, customizable LED matrix clock with web configuration.</p>
+            <img src="img/16y.jpg" alt="16x16 WiFi Clock Preview" class="header-img">
+        </header>
+
+        <!-- Features -->
+        <section>
+            <h2>Features</h2>
+            <ul>
+                <li>Router-like interface for easy setup</li>
+                <li>Gets time automatically from WiFi</li>
+                <li>SMS alerts (requires SMS account)</li>
+            </ul>
+            <p style="margin-top: 1rem; font-weight: 500; color: var(--accent-color);">Optional components enable:</p>
+            <ul>
+                <li>Temperature &amp; Humidity monitoring</li>
+                <li>Smoke detection</li>
+                <li>Customizable alarms</li>
+                <li>Light detection</li>
+                <li>Motion detection (can be added manually)</li>
+            </ul>
+        </section>
+
+        <!-- Parts & 3D Printing -->
+        <div class="grid-2">
+            <section>
+                <h2>3D Print Parts</h2>
+                <p>You will need to print both the lid and the case.</p>
+                <ul>
+                    <li><a href="stl/wificlock7case.stl" download>Download Case (STL)</a></li>
+                    <li><a href="stl/wificlock7lid.stl" download>Download Lid (STL)</a></li>
+                </ul>
+                <p><a href="https://thingiverse.com/something" target="_blank">View on Thingiverse</a></p>
+
+                <div class="thumb-gallery" style="margin-top: 1rem;">
+                    <div class="thumb-card">
+                        <img src="img/wificlock7case.jpg" alt="Clock Case 3D Model">
+                        <span>Case STL</span>
+                    </div>
+                    <div class="thumb-card">
+                        <img src="img/wificlock7lid.jpg" alt="Clock Lid 3D Model">
+                        <span>Lid STL</span>
+                    </div>
+                </div>
+
+                <p style="font-weight: 500; margin-top: 1.5rem; color: var(--accent-color);">Supplies:</p>
+                <ul>
+                    <li>A soldering iron may be needed to install pins on some of the boards.</li>
+                    <li>Soldering wires directly provides a much more secure and reliable connection than temporary jumper wires.</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>Parts Gallery</h2>
+                <div class="thumb-gallery">
+                    <div class="thumb-card">
+                        <img src="img/led5050-16x16.jpg" alt="LED Matrix">
+                        <span>16x16 LED</span>
+                    </div>
+                    <div class="thumb-card">
+                        <img src="img/esp32s2-mini.jpg" alt="ESP32 S2 Mini">
+                        <span>ESP32-S2-Mini</span>
+                    </div>
+                    <div class="thumb-card">
+                        <img src="img/AT10.jpg" alt="AT10 Sensor">
+                        <span>AT10 Sensor</span>
+                    </div>
+                    <div class="thumb-card">
+                        <img src="img/FF jumper wires.jpg" alt="Jumper Wires">
+                        <span>Jumper Wires</span>
+                    </div>
+                </div>
+
+                <p style="font-weight: 500; margin-top: 1.5rem; color: var(--accent-color);">Optional Parts:</p>
+                <div class="thumb-gallery">
+                    <div class="thumb-card">
+                        <img src="img/MQ2-Gas-Sensor.jpg" alt="MQ2 Smoke Detector">
+                        <span>MQ2 Smoke</span>
+                    </div>
+                    <div class="thumb-card">
+                        <img src="img/PCpiezo.jpg" alt="PC Piezo">
+                        <span>PC Piezo</span>
+                    </div>
+                    <div class="thumb-card">
+                        <img src="img/Mini-PIR-Sensor.jpg" alt="Mini PIR Sensor">
+                        <span>PIR Motion</span>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Assembly Guide (Collapsible Steps) -->
+        <section>
+            <h2>Assembly &amp; Setup Guide</h2>
+
+            <details open>
+                <summary>Step 1: Collect Parts</summary>
+                <div class="step-content">
+                    <p><em>Tip: Try eBay or AliExpress</em></p>
+                    <ul>
+                        <li>ESP32-S2-Mini (recommended with pre-soldered pins)</li>
+                        <li>16x16 5050 WS2812B LED grid</li>
+                        <li>USB-C cable (to program the ESP)</li>
+                        <li>USB cable (cut the end off for power supply)</li>
+                        <li>Wires or jumpers</li>
+                        <li>Soldering equipment (iron, solder, and flux)</li>
+                    </ul>
+                    <p style="font-weight: 500; margin-top: 1rem;">Optional parts:</p>
+                    <ul>
+                        <li>AHT10 (temperature/humidity sensor)</li>
+                        <li>MQ2 (smoke sensor)</li>
+                        <li>LDR/resistor (light sensor)</li>
+                        <li>Piezo (alarm)</li>
+                    </ul>
+                </div>
+            </details>
+
+            <details>
+                <summary>Step 2: Print the Case</summary>
+                <div class="step-content">
+                    <p>Print out your case (`wificlock7case.stl`) and lid (`wificlock7lid.stl`) using your 3D printer.</p>
+                </div>
+            </details>
+
+            <details>
+                <summary>Step 3: Flash the Microcontroller</summary>
+                <div class="step-content">
+                    <p>Upload the firmware code to your microcontroller.</p>
+                    <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.3rem;">Arduino Code:</p>
+                    <pre><code>// Insert your Arduino code here</code></pre>
+
+                    <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.3rem; margin-top: 1rem;">HTML Web Interface Code:</p>
+                    <pre><code>&lt;!-- Insert your HTML web interface code here --&gt;</code></pre>
+                </div>
+            </details>
+
+            <details>
+                <summary>Step 4: Assemble Electronics &amp; Wiring</summary>
+                <div class="step-content">
+                    <div class="warning-box">
+                        ⚠️ Check wiring carefully so as not to release the magic smoke!<br>
+                        Check wiring carefully so as not to release the magic smoke! (Yes, check at least twice, unless you bought spares)
+                    </div>
+                    <p>Plug in, boot up, and perform your initial device setup/testing.</p>
+                    
+                    <p style="font-weight: 500; margin-top: 1.5rem; color: var(--accent-color);">Wiring &amp; Assembly Photos:</p>
+                    <div class="thumb-gallery">
+                        <div class="thumb-card">
+                            <img src="img/wiring-placeholder-1.jpg" alt="Wiring Step 1">
+                            <span>Power Hookup</span>
+                        </div>
+                        <div class="thumb-card">
+                            <img src="img/wiring-placeholder-2.jpg" alt="Wiring Step 2">
+                            <span>Matrix Data Pin</span>
+                        </div>
+                    </div>
+                </div>
+            </details>
+
+            <details>
+                <summary>Step 5: Final Assembly</summary>
+                <div class="step-content">
+                    <p>Carefully place everything inside the printed case. Enjoy your new device!</p>
+                    <p style="font-style: italic; color: var(--accent-color); margin-top: 0.5rem;">Praise me {like, comment, donate}</p>
+                </div>
+            </details>
+
+            <details>
+                <summary>Step 6: Research &amp; Upgrade</summary>
+                <div class="step-content">
+                    <p>Expand your project by adding a motion detector, or write custom code to fetch live API weather data like rain (r99%), clouds (C99%), aurora (KPx), or geomagnetic (Gx) indexes. So many possibilities!</p>
+                </div>
+            </details>
+        </section>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>16x16 5050 WiFi Clock Project &bull; Built with HTML &amp; CSS</p>
+        </div>
+    </div>
+
+</body>
+</html>
