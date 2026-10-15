@@ -1,0 +1,377 @@
+<!DOCTYPE HTML><html><body>
+<div id="hdr"><center><b>Wifi Clock Draw</b>&nbsp;&nbsp;&nbsp;
+<button onclick="clrp();">-Clear-</button>
+<input id="dck" type='checkbox' onclick="tog('dck');">Disable clock update
+<button id='ldimg'>-Load image-</button>
+<button id='circtoghelp'>-Help Toggle-</button>
+</center></div>
+<div id="circhelp" style="display:none"><center>
+<br>Wifi Clock Draw v1<p>
+Remember to enable clock in the toggle tab when you are done!<br>
+Works best on Chrome and Firefox.
+<p></center></div>
+<p><center><table><tr>
+<td><input type='color' class='fteen' id='v1'><br><input type='checkbox' id='x1'></td>
+<td><input type='color' class='fteen' id='v2'><br><input type='checkbox' id='x2'></td>
+<td><input type='color' class='fteen' id='v3'><br><input type='checkbox' id='x3'></td>
+<td><input type='color' class='fteen' id='v4'><br><input type='checkbox' id='x4'></td>
+<td><input type='color' class='fteen' id='v5'><br><input type='checkbox' id='x5'></td>
+<td><input type='color' class='fteen' id='v6'><br><input type='checkbox' id='x6'></td>
+</tr></table>
+<div id="wrp"><canvas id='can'></canvas></div>
+<canvas id='scl' width="16" height="16"></canvas>
+</center>
+<style>
+body { background-color:black; color:grey; zoverflow-y: hidden }
+#wrp{  margin:auto; width:100%; overflow:hidden; overscroll-behavior: none;
+ }
+#can { display: block; margin: auto; border: 1px solid green; }
+#scl { display: none; border: 1px solid red; width:150px; height:150px;}
+#circtab td{padding:5px;}
+#btg { position:fixed; top:0px; }
+td { text-align: center; border:1px solid green; width:5%;}
+.fteen { width:100%; height:20px; }
+</style><script>
+var pxar=[];
+const scal=.9;
+const can=document.getElementById('can');
+var mx,my;// current pointer location
+var fx,fy;// mouse grabbed coords
+var px,py,pz;// phone/touch grabbed
+var drag='n'; //draggable
+var xx,yy,grid,ww,hh,sz,xxx,yyy,outt; //from json
+var col=[2,"#000000","#ff0000","#ff8000","#ffff00","#00ff00","#0000ff"]; //0=selected, rest = buttons
+for (i=1;i<7;i++){
+ tmp=document.getElementById("v"+i)
+ tmp.value=col[i];
+ tmp.onclick = function(e){ selt(e.target.id.replace("v", "")); }
+ tmp=document.getElementById("x"+i)
+ tmp.onclick = function(e){ selt(e.target.id.replace("x", "")); }
+ tmp.checked=false;
+}
+document.getElementById("x2").checked=true;
+document.getElementById("ldimg").onclick = function(){ openFileDialog('.jpg,.png',loadimg) }
+window.addEventListener('resize', function(event) { rstim=setTimeout(scale,150); }, true);
+
+document.getElementById("circtoghelp").onclick = function(){
+ var cirtog=document.getElementById("circhelp");
+ if (cirtog.style.display !== "none") { cirtog.style.display = "none"; }
+ else {  cirtog.style.display = "block"; }
+}
+newg(); // init
+
+function tog(tg){
+ tmp=document.getElementById("dck");
+ console.log(tmp.checked);
+ if (tmp.checked==false){
+  clrp();
+  setTimeout( function(){ document.getElementById("dck").checked=false; },500 );
+ }
+ setTimeout( function(){ ajax(-1,"/togl",1,"d="+tg); },250 );
+ 
+}
+function clrp(){
+ document.getElementById("dck").checked=true;
+ ajax(-1,"/clrp",1,"");
+ newg();
+}
+function ajax(id=-1,url,gp,data=""){ // get=0, post=1
+  const xhttp = new XMLHttpRequest();
+  xhttp.onload = function() {
+   //console.log(this.responseText);
+   if (url=="/info" && this.responseText=="1") {
+    document.getElementById("dck").checked=true;
+   }
+  }
+  if (gp){ // get=0, post=1
+   xhttp.open("POST", url);
+   xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+   xhttp.send(data);
+  } else {
+   xhttp.open("GET", url, true);
+   xhttp.send();
+  }
+}
+function selt(b){
+ //console.log(b);
+ for (i=1;i<7;i++){
+  document.getElementById("x"+i).checked=false;
+ }
+ document.getElementById("x"+b).checked=true;
+ col[0]=b;
+}
+
+function newg(){ // reset/clear
+ document.getElementById("circhelp").style.display='none';
+ //done=0;
+  if (!tmp) {
+ var data=''; var tmp,th,tw;
+ var rat=0;
+ var ts=16;
+ var tx=window.innerWidth;
+ var ty=window.innerHeight;
+ if (rat){
+  if (tx>ty){
+   //console.log('w');
+   th=ts;
+   tw=tx/(ty/ts);
+  }else {
+   //console.log('h');
+   tw=ts;
+   th=ty/(tx/ts);
+  }
+ }else{
+  tw=ts; th=ts;
+ }
+ data+='wdh='+Math.floor(tw)+'&hgt='+Math.floor(th);
+ dbstart();
+ }
+}
+
+function dbstart(json){
+ xx=16; yy=16; outt=xx;
+ grid = new Array(xx).fill(null).map(()=>new Array(yy).fill("#000000"));
+ for (var y=0;y<yy;y++){
+  for (var x=0;x<xx;x++){
+   outt=outt+"!"+x+"x"+y+"="+grid[x][y];
+  }
+ }
+ scale();main();
+}
+function clku(evn){
+ mx=evn.offsetX; my=evn.offsetY;
+  if (evn.changedTouches){
+  var rect = can.getBoundingClientRect();
+  mx=Math.floor(evn.changedTouches[0].clientX-rect.left);
+  my=Math.floor(evn.changedTouches[0].clientY-rect.top);
+ }
+ tx=Math.floor((mx/ww)*xx); ty=Math.floor((my/hh)*yy);
+ //console.log('UU',fx,fy,mx,my,drag,gx,gy,tx,ty);
+ if (fx+'x'+fy+'x'+gx+'x'+gy == mx+'x'+my+'x'+tx+'x'+ty){ // if prev values match current
+  //click only
+  dodot(tx,ty); //draw and send
+ }
+ //console.log(evn.changedTouches);
+ if (drag!='n') {
+  drag='n';
+  if (pxar.length){
+   //var formData = new FormData();
+   out="";
+   for(var i=0; i<pxar.length; i++) {
+    //formData.append("d"+i,pxar[i]);
+    //console.log(pxar[i]);
+    out+="&v"+i+"="+pxar[i];
+   }
+   var qc=grid[tx][ty];
+   var r=""+qc[1]+qc[2];
+   var g=""+qc[3]+qc[4];
+   var b=""+qc[5]+qc[6];
+   //console.log(out);
+   document.getElementById("dck").checked=true;
+   ajax(-1,"/dpxs",1,"r="+r+"&g="+g+"&b="+b+out);
+  }
+ }
+}
+function clkd(evn){
+ mx=evn.offsetX; my=evn.offsetY;
+ //evn.preventDefault();
+ if (evn.changedTouches){
+  var rect = can.getBoundingClientRect();
+  mx=Math.floor(evn.changedTouches[0].clientX-rect.left);
+  my=Math.floor(evn.changedTouches[0].clientY-rect.top);
+ }
+ fx=mx;fy=my; //save PREV vals
+ gx=Math.floor((mx/ww)*xx); gy=Math.floor((my/hh)*yy);
+ drag='y'; pxar=[];
+}
+function movr(evn){
+ //console.log("MM");
+ mx=evn.offsetX; my=evn.offsetY;
+ if (evn && !mx){
+  //console.log("f",fx,fy,"g",gx,gy);
+  //console.log(mx);
+  //console.log(evn);
+  var rect = can.getBoundingClientRect();
+  //console.log(evn);
+  if (typeof evn.changedTouches !== 'undefined') {
+   mx=Math.floor(evn.changedTouches[0].clientX-rect.left);
+   my=Math.floor(evn.changedTouches[0].clientY-rect.top);
+  }
+ }
+ //console.log('m:',mx,my,drag,"f",fx,fy,"g",gx,gy);
+ gx=Math.floor((mx/ww)*xx); gy=Math.floor((my/hh)*yy);
+ if (drag=='y' && pxar[pxar.length-1]!=gx+"x"+gy){
+  dodot(gx,gy,1); //draw, don't send
+  if (!pxar.includes(gx+"x"+gy)){
+   pxar.push(gx+"x"+gy);
+  }
+ }
+}
+function dodot(qx,qy,qd=0){
+ var tmp=document.getElementById("v"+col[0]);
+ if (grid[qx][qy]!=tmp.value) {
+  grid[qx][qy]=tmp.value; //sets grid array colour
+  var qc=grid[qx][qy];
+  drci(sz,qx,qy,qc,1); 
+  var r=""+qc[1]+qc[2];
+  var g=""+qc[3]+qc[4];
+  var b=""+qc[5]+qc[6];
+  //console.log(qx+"x"+qy+" : "+r+" "+b+" "+g);
+  if (qd==0){
+   document.getElementById("dck").checked=true;
+   ajax(-1,"/dpx",1,"x="+qx+"&y="+qy+"&r="+r+"&g="+g+"&b="+b);
+  }
+ }
+}
+function main(){
+ can.onmousedown = clkd;
+ can.onmouseup = clku;
+ can.onmousemove = movr;
+ can.addEventListener("touchstart", clkd, {passive: true});
+ can.addEventListener("touchend", clku, false);
+ can.addEventListener("touchmove", movr, {passive: true});
+ draw();
+ ajax(-1,"/info",1,"i=2");
+}
+
+function scale(){
+ var iw=window.innerWidth;
+ var ih=window.innerHeight-(document.getElementById('hdr').getBoundingClientRect().height*3);
+ //ratio >1=hori <1=vert
+ var sc1=iw/ih;
+ var sc2=xx/yy;
+ if (sc2!=1 && ( (sc1>1 && sc2<1) || (sc1<1 && sc2>=1) ) ) {
+  //console.log('flip');
+  var tgrd = new Array(yy).fill(null).map(()=>new Array(xx).fill(null));
+  for (var y=0;y<yy;y++){
+   for (var x=0;x<xx;x++){
+    //if first digit 3/4 chg to 4/3
+    var t1=grid[x][y].slice(0,1);
+    var t2=grid[x][y].slice(1,2);
+    if (t1==3) {t1=4;}
+    else if (t1==4) {t1=3;}
+    if (t2==2) {t2=3;}
+    else if (t2==3) {t2=2;}
+    tgrd[y][x]=t1+t2+grid[x][y].slice(3,6)+grid[x][y].slice(2,3);
+   }
+   tgrd[y].reverse();
+  }
+  xx=grid[0].length
+  yy=grid.length
+  grid=tgrd;
+  sc2=xx/yy;
+ }
+ var tv=sc1>sc2 ? yy : xx;
+ var tz=window.innerWidth/tv*scal;
+ ww=tz*xx;
+ hh=tz*yy;
+ if (sc1>sc2){
+  ww=ih/yy*xx*scal;
+  hh=ih/yy*yy*scal;
+ }else{
+  ww=iw/xx*xx*scal;
+  hh=iw/xx*yy*scal;
+ }
+ xxx=ww/xx;yyy=hh/yy;
+ sz=xxx<yyy ? xxx*0.25 : yyy*0.25;
+ var sc=0; //square
+ can.width=ww; can.height=hh;
+ wrp.style.height=(hh+5)+'px';
+ draw(1);
+}
+function draw(pri=0){ //priority, drag low, drop high.
+ ctx = can.getContext('2d');
+ //ctx.clearRect(0, 0, can.width, can.height);
+   ctx.fillStyle = "black";
+   ctx.fillRect(0, 0, can.width, can.height);
+ if (px){
+  gx=px;gy=py;
+ }
+ //console.log(drag);
+ for (y = 0; y < yy; y++) {
+  for (x = 0; x < xx; x++) {
+   ctx.lineWidth = 2;
+   ctx.strokeStyle = "#070707";
+   ctx.strokeRect(x*xxx, y*yyy, xxx, yyy);
+   drci(sz,x,y,grid[x][y],1);
+  }
+ }
+}
+function drci(rad,x,y,p,s=0) {
+ if (rad<4) { return; }
+  //console.log(grid[x][y]);
+  //console.log(rad,x,y,p,s);
+  tmp=can.getContext('2d');
+  tmp.beginPath();
+  tmp.arc((x*xxx)+(xxx/2), (y*yyy)+(yyy/2), rad, 0, 2 * Math.PI, false);
+  tmp.fillStyle = p;
+  tmp.fill();
+  tmp.beginPath();
+  tmp.arc((x*xxx)+(xxx/2), (y*yyy)+(yyy/2), rad, 0, 2 * Math.PI);
+  tmp.strokeStyle = "black";
+  tmp.lineWidth = 1;
+  tmp.stroke();
+}
+function loadimg(e){
+ var rs=32;
+ //console.log(e);
+ if (e.target.files) {
+  let imageFile = e.target.files[0];
+  var reader = new FileReader();
+  reader.onload = function (e) {
+   var img = document.createElement("img");
+   img.onload = function (event) {
+    var scal=document.getElementById("scl");
+    scal.setAttribute('height', rs);
+    scal.setAttribute('width', rs);
+    var sc = scal.getContext("2d");
+
+    var width = img.width;
+    var height = img.height;
+    if (width > height) {
+       height = height * (rs / width);
+       width = rs;
+    } else {
+      width = width * (rs / height);
+      height = rs;
+    }
+    //newg();
+    sc.fillRect(0, 0, rs,rs);
+    sc.drawImage(img,(rs-width)/2, (rs-height)/2, width, height);
+    sc.globalAlpha = 0.333;
+    sc.drawImage(img,((rs-width)/2)+1, 1+((rs-height)/2), width, height);
+    sc.drawImage(img,((rs-width)/2)+-.5, -.5+((rs-height)/2), width, height);
+    sc.drawImage(img,(rs-width)/2, (rs-height)/2, width, height);
+    //scal.style.webkitFilter = "blur(5px) "; //css blus
+    //pxar=[];
+    pxo="";
+    for (y = 0; y < yy; y++) {
+     for (x = 0; x < xx; x++) {
+      var tmp=sc.getImageData(x*(rs/16), y*(rs/16), 1, 1).data;
+      tmp=tmp[0].toString(16).padStart(2, '0')+tmp[1].toString(16).padStart(2, '0')+tmp[2].toString(16).padStart(2, '0');
+      //console.log(tmp);
+      //pxar.push("&d=#"+tmp);
+      pxo+="d="+tmp+"&";
+      grid[x][y]="#"+tmp;
+      drci(sz,x,y,grid[x][y],1);
+     }
+    }
+    //console.log(pxar);
+    ajax(-1,"/clrp",1,pxo+"d=0");
+    document.getElementById("dck").checked=true;
+   }
+   img.src = e.target.result;
+  }
+  reader.readAsDataURL(imageFile);
+ }
+}
+function openFileDialog(accept, callback) {
+ var inputElement = document.createElement("input");
+ inputElement.type = "file";
+ inputElement.accept = accept;
+ inputElement.addEventListener("change", callback);
+ inputElement.dispatchEvent(new MouseEvent("click"));
+}
+</script>
+<div id='btg'><a href='/'>back to config</a></div>
+</body></html>

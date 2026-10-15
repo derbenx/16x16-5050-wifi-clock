@@ -1,0 +1,862 @@
+<!DOCTYPE html><html><body><center><h2>Wifi Clock setup</h2>
+<style>
+.tab {
+  max-width:600px;
+  overflow: hidden;
+  border: 1px solid #ccc;
+  background-color: #f1f1f1;
+}
+.tab button {
+  background-color: inherit;
+  float: left;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  padding: 8px 8px;
+  transition: 0.3s;
+}
+.tab button:hover {background-color: #dfd;}
+.tab button.active {background-color: #ccc;}
+.tabcontent {
+  max-width:560px;
+  display: none;
+  padding: 6px 8px;
+  border: 1px solid #ccc;
+  border-top: none;
+}
+.box{border:1px solid black;width:90%;}
+.bps {width:80%;}
+#smspost,#smscode,#smsurl {width:80%;}
+#not{width:80%;line-break:anywhere;}
+#chbt td{border:1px solid black;padding:1px 9px;}
+#dbug{top:0;position:fixed;right:0;background:#afa;border:1px solid red;padding:5px;}
+</style>
+ <!-- Tab links -->
+<div class="tab">
+  <button class="tablinks" onclick="oy(event, 5) " id="df">Info</button>
+  <button class="tablinks" onclick="oy(event, 7) ">Display</button>
+  <button class="tablinks" onclick="oy(event, 2) ">Toggle</button>
+  <button class="tablinks" onclick="oy(event, 1) " >Wifi</button>
+  <button class="tablinks" onclick="oy(event, 6) ">Wifi Scan</button>
+  <button class="tablinks" onclick="oy(event, 8) ">Alarms</button>
+  <button class="tablinks" onclick="oy(event, 9) ">SMS</button>
+  <button class="tablinks" onclick="oy(event, 4) ">Advanced</button>
+  <button class="tablinks" onclick="oy(event, 10) ">Time</button>
+  <button class="tablinks" onclick="oy(event, 11) ">Beep</button>
+  <button class="tablinks" onclick="oy(event, 12) ">Pinout</button>
+  <!--<button class="tablinks" onclick="oy(event, 3) ">Timers</button>-->
+</div>
+<!-- Tab content -->
+<div id="1" class="tabcontent">
+  <h3>Wifi</h3><p>
+    Enter your 2.4GHz WIFI info:<br>
+    (Click the 'WiFi List' tab to scan for SSIDs)<p>
+  SSID: <input type='text' id='STASSID' maxlength="64"><p>
+  PSK: <input type='text' id='STAPSK' maxlength="64"><p>
+  Saved passwords are not shown after saving!<br>
+  Leave text inputs as (key stored) to keep currently saved values.<br>
+  or use -1 to clear saved value, this works for all inputs.<p>
+  
+  Timezone:<br>
+  <select onchange='tzc()' id='MyTZsi'>
+   <option value='MA'>Manual</option><option value='AB'>Alberta</option>
+   <option value='BC'>British Columbia</option><option value='LB'>Labrador</option>
+   <option value='MB'>Manitoba</option><option value='NB'>New Brunswick</option>
+   <option value='NL'>Newfoundland</option><option value='NS'>Nova Scotia</option>
+   <option value='NT'>Northwest Territories</option><option value='NU'>Nunavut</option>
+   <option value='ON'>Ontario</option><option value='PE'>Prince Edward Island</option>
+   <option value='QC'>Quebec</option><option value='SK'>Saskatchewan</option>
+   <option value='YT'>Yukon</option>
+  </select><br>
+  <input type='text' id='MyTZ' maxlength="50" size='50' ><br>
+  Visit here for <a target='_blank' href='https://github.com/nayarsystems/posix_tz_db/blob/master/zones.csv'>Time Zone strings</a><p>
+
+</p>
+<p><button onclick="saved(['STASSID','STAPSK','MyTZsi','MyTZ']);">Save Main</button> when done making changes!<br>
+<b>Changing any items above requires a restart after you save!</b><br>
+ See Advanced tab for restart.<br>
+</div>
+<div id="2" class="tabcontent">
+  <h3>Toggle Settings</h3>
+  These options change immediately. You don't need to save, your choice will remain until power loss. If you do save the checked items will be active on restart.<p>
+  <input type='checkbox' onclick="tog('mac');" id="mac">Scroll text marquee mode<p>
+  <input type='checkbox' onclick="tog('h24');" id="h24">24H clock<p>
+  <input type='checkbox' onclick="tog('dck');" id="dck">Disable clock update (used for paint)<p>
+  <input type='checkbox' onclick="tog('dec');" id="dec">Don't Round Decimals<p>
+
+  <b>Configure lower screen items:</b><p>
+  <table id='chbt'><tr><td><center><b>Show</b></center></td><td><center><b>Example</b></center></td></tr>
+  <tr><td><input type='checkbox' id="wfs" class="togs" onclick="tog('wfs');">Wifi signal</td><td>[5/6]</td></tr>
+  <tr><td><input type='checkbox' id="sht" class="togs" onclick="tog('sht');">Temperature</td><td>23C</td></tr>
+  <tr><td><input type='checkbox' id="shh" class="togs" onclick="tog('shh');">Humidity</td><td>40%</td></tr>
+  <tr><td><input type='checkbox' id="shd" class="togs" onclick="tog('shd');">Date</td><td>D/M/Y or Y</td></tr>
+  <tr><td><input type='checkbox' id="smk" class="togs" onclick="tog('smk');">Smoke Levels</td><td>S:ppm</td></tr>
+  <tr><td><input type='checkbox' id="aur" class="togs" onclick="tog('aur');">Aurora Data</td><td>KP:[0-9]</td></tr>
+  <tr><td><input type='checkbox' id="moo" class="togs" onclick="tog('moo');">Moon Phase</td><td>P:[nE,Cr,HF,GB,FL]</td></tr>
+  <!--<tr><td><input type='checkbox' id="wea" class="togs" onclick="tog('wea');">Show Weather</td><td>TBD</td></tr>-->
+  </table><p>
+  Show KP on bottom row if greater than:<select id="hkp" onchange='kpc()'><br>
+  (KP is checked hourly from boot time.)
+  <option value="0">all</option>
+  <option value="1">1</option>
+  <option value="2">2</option>
+  <option value="3">3</option>
+  <option value="4">4</option>
+  <option value="5">5</option>
+  <option value="6">6</option>
+  <option value="7">7</option>
+  <option value="8">8</option>
+  <option value="9">off</option>
+ </select><br>
+  <p>
+  <button onclick="savtog();">Save Toggles</button>
+  </p>
+  <b>Notes:</b><br>
+  <b>Auroras;</b> Storm levels, KP5 (G1), KP6 (G2), KP7 (G3), KP8 (G4), KP9 (G5). Depending on where you live, you may need a higher storm level to see an aurora, higher levels are rare.<p>
+  <b>Moon Phases;</b> nE=New&#x1F311, Cr=Crescent&#x1F312, HF=Half&#x1F313, Gb=Gibbous&#x1F314, FL=Full&#x1F315<p>
+  <b>Smoke detector;</b> If the clock hasn't been used for over a month let the smoke sensor warm up for at least 24-48h before enabling alerts. Also, if the clock has been off over 12h, it will need a 20 minute warmup, leave the clock powered on to avoid warm up times.<br>
+</div>
+<div id="3" class="tabcontent">
+  <h3>Timers</h3><p></p>
+</div> 
+<div id="4" class="tabcontent">
+  <h3>Advanced</h3><p>
+  Click to <a href='/restart'>restart</a> wifi clock<p><hr>
+  <h3>Access Point (hotspot)</h3>
+  This AP is only used to configure the clock, no internet is provided.<br>
+ AP SSID: <input type="text" id="APSSID" maxlength="64"><br>
+ AP PSK: <input type="text" id="APPSK" maxlength="64"><br>
+ You should change the default password. Remember to click save below.<p>
+ <select id="HideAP">
+  <option value="0">Disable AP</option>
+  <option value="1">Hide AP</option>
+  <option value="2">Show AP</option>
+ </select><br>
+  Show AP: <b>Recommended</b>, The AP (Access Point) is used to connect to WiFi Clock to get to this page. It shows up as "WiFi Clock" if you search for WiFi from your phone.<p>
+  Hide AP: You can still connect to the AP, but it won't show up when looking for a WiFi network to connect to. You will have to set it up manually on your phone.<p>
+  Disable AP : Disable AP turns off the WiFi SSID "Wifi Clock", that means you can only access this page from your local lan once the clock connects to your wifi. It will be difficult to configure the clock without an AP if your router breaks. You have to set up any new routers with the same WiFi details to gain access.<br>
+  If WiFi Clock cannot connect to local WiFi, after some time (from bootup) it will turn this setting back to Show AP (and reboot) so you can still access the settings. It's a basic lockout prevention.</p>
+<h3>Time servers</h3><p>
+You can edit your time servers here:<br>
+NTP1: <input type="text" id="NTP1" maxlength="40"><br>
+NTP2: <input type="text" id="NTP2" maxlength="40"><p>
+<p><button onclick="saved(['HideAP','APSSID','APPSK','NTP1','NTP2']);">Save</button><p>
+<b>Changing any items above requires a restart after you save!</b><br>
+</div>
+<div id="5" class="tabcontent">
+  <h3>Info</h3><p>
+  Wifi Clock<br>
+  Made by Colin Glover (aka DerBen)<p>
+  Version 2.0<p>
+  Clock Date: <font id="odat"></font><br>
+  Uptime: <font id="uptm"></font><br>
+  Free RAM: <font id="fram"></font><br>
+  Wifi IP: <font id="stip"></font><br>
+  AP IP: <font id="apip"></font><p>
+  <div id="info">
+  Wifi Signal: <font id="sigl"></font> of 6 bars<p>
+  Raw Temperature: <font id="temp"></font> C<br>
+  Adj Temperature: <font id="adjtemp"></font> C<br>
+  Humidity: <font id="humd"></font> %<p>
+  
+  Smoke level: <font id="smok"></font> ppm<br>
+  Smoke is detected in the range of 100 to 10,000 ppm<p>
+  
+  Aurora KP: <font id="aura"></font> of 9<br>
+  Storm level: <font id="strm"></font><p>
+  Moon Phase: <font id="moon"></font><br>
+  nE=New&#x1F311, Cr=Crescent&#x1F312, HF=Half&#x1F313, Gb=Gibbous&#x1F314, FL=Full&#x1F315<p>
+  </div>
+  </p>
+</div>
+<div id="6" class="tabcontent">
+  <h3>Wifi Scan</h3>
+  This will show local WiFi routers.<br>
+  <button id="wflb" type="button" onclick="wifilist();">Show List</button><br>
+  <p id="wifilist"></p>
+</div> 
+<div id="7" class="tabcontent">
+  <h3>Display</h3>
+  Marquee speed: <input id="amspd" type="range" min="0" max="30" value="" onchange="speed(this.value);"><br>
+  Brightness: <input id="aglow" type="range" min="1" max="200" value="" onchange="bright(this.value);"><br>
+  Lower brightness levels will help the LEDs last longer and use less power.<br>
+  Warning; this display can get very bright, use higher levels with caution!<p>
+  Font colour: <select onchange="foco(this.value);" id="afoco">
+  </select><br>
+  <input type='color' id='f1' value="#ffffff" onchange="foco(0);"><input type='color' id='f2' value="#ffffff" onchange="foco(0);"><input type='color' id='f3' value="#ffffff" onchange="foco(0);"><input type='color' id='f4' value="#ffffff" onchange="foco(0);"><input type='color' id='f5' value="#ffffff" onchange="foco(0);"><p>
+  <!--<input type='checkbox' id='afc'> Auto change font colour based on month.<br>Activates on save, but only changes font colour on the first of the month.
+  <p>--> 
+  Temperature adjust: <input type='number' min="-20" max="20" size="3" onkeyup="tadj();" onchange="tadj();" id="tempadj"> (Range; -20 to +20)<br>The LEDs and electronics can run warm in the clock, subtract a few degrees here to reflect room temps.<p>
+  <button onclick="saved(['amspd','aglow','afoco','tempadj','f1','f2','f3','f4','f5']);">Save</button> the above settings.<p>
+  <h3>Flashlight Mode</h3><p>
+  This disables clock update and fills the screen with the selected colour, use brightness slider above<br>
+  Warning; very bright, dim brightness first!<br>
+  Ambience Mode: <select id="flm" onchange="flmo();">
+  <option value="0">Turn off</option>
+  <option value="1">Solid colour</option>
+  <option value="2">Lightning</option>
+  <option value="3">Rain</option>
+  <option value="4">Fireplace</option>
+  <option value="5">Random dots</option>
+  <option value="6">Spiral</option>
+ </select><br>
+
+  Solid Colour: <input type='color' id='flc' value="#ffffff" onchange="flmo();"><p>
+  <h3>Message</h3><p>
+  Show marquee message on clock LCD<br>
+ <input type='text' id='marquee' maxlength="60" size="50"><p>
+ <input type='button' value='Show Now' onclick="marq();"> See available characters below.<p>
+ Messages will be scrolled marquee style, see Toggle tab to change from marquee.<p>
+ Available characters:<br>
+ 0123456789AbCcdEFGHiJLloOPSuY-=_[]?!.<br>
+ Space works too, unlisted characters will be a space.<br>
+ type a * for degrees symbol<br>
+ and ^ for the small super c<p>
+ <h3>Wifi Paint</h3><p>
+  lets you draw on the clock...<br><a href="/paint.htm">Click here</a>
+  </p>
+</div>
+<div id="8" class="tabcontent">
+  <h3>Alarms</h3>Remember to click save at the bottom.<br>
+ <p class="box">Alarm 1: Weekly<br>
+ <label><input type='checkbox' class='a1' id="al1">Su</label>
+ <label><input type='checkbox' class='a1' id="al2">Mo</label>
+ <label><input type='checkbox' class='a1' id="al3">Tu</label>
+ <label><input type='checkbox' class='a1' id="al4">We</label>
+ <label><input type='checkbox' class='a1' id="al5">Th</label>
+ <label><input type='checkbox' class='a1' id="al6">Fr</label>
+ <label><input type='checkbox' class='a1' id="al7">Sa</label>
+ <br>
+ Time: <input type='time' id='a1t' value=''><br><br>
+ <label><input type='radio' class='a1' id="a0" value="0" name="a1" checked>Silent</label>
+ <label><input type='radio' class='a1' id="a1" value="1" name="a1">Beep1</label>
+ <label><input type='radio' class='a1' id="a2" value="2" name="a1">Beep2</label>
+ <label><input type='radio' class='a1' id="a3" value="3" name="a1">Beep3</label>
+ <label><input type='radio' class='a1' id="a4" value="4" name="a1">Beep4</label>
+ <label><input type='radio' class='a1' id="a5" value="5" name="a1">Beep5</label><br>
+ Delay between beeps: <input type="number" id='a1f' min="1" max="99999" style="width:60px;"> Seconds<br>
+ <br><label><input type='checkbox' class='a1' id="a1c">Send SMS text</label><br></p>
+ Time based alarms only start beeping within the minute assigned.
+ <p class="box">Alarm 2: Specific day and time<br>
+ Date: <input type='date' id='a2d' value=''> 
+ Time: <input type='time' id='a2t' value=''><br><br> 
+ <label><input type='radio' class='a2' id="b0" value="0" name="a2" checked>Silent</label>
+ <label><input type='radio' class="a2" id="b1" value="1" name="a2">Beep1</label>
+ <label><input type='radio' class="a2" id="b2" value="2" name="a2">Beep2</label>
+ <label><input type='radio' class="a2" id="b3" value="3" name="a2">Beep3</label>
+ <label><input type='radio' class="a2" id="b4" value="4" name="a2">Beep4</label>
+ <label><input type='radio' class="a2" id="b5" value="5" name="a2">Beep5</label><br>
+ Delay between beeps: <input type="number" id='a2f' min="1" max="99999" style="width:60px;"> Seconds<br>
+ <br><label><input type='checkbox' class="a2" id="a2c">Send SMS text</label>
+ </p>
+ <p class="box">Smoke Detector:<br>
+ Set smoke PPM level: <input type='number' id="sdx" max="9999" min="100"> [ 100-9999 ]<br>
+ If you get too many false alarms, you can set a higher PPM.<br><br>
+ <b>This device does not replace a regular smoke alarm, use both together! This sensor also detects gasses in the air, not just smoke.</b><br>
+ Gasses include LPG, carbon monoxide, alcohol, propane and methane.<br><br>
+ <label><input type='radio' class='sd1' id="sd0" value="0" name="sd" checked>Silent</label>
+ <label><input type='radio' class='sd1' id="sd1" value="1" name="sd">Beep1</label>
+ <label><input type='radio' class='sd1' id="sd2" value="2" name="sd">Beep2</label>
+ <label><input type='radio' class='sd1' id="sd3" value="3" name="sd">Beep3</label>
+ <label><input type='radio' class='sd1' id="sd4" value="4" name="sd">Beep4</label>
+ <label><input type='radio' class='sd1' id="sd5" value="5" name="sd">Beep5</label><br>
+ Delay between beeps: <input type="number" id='sdf' min="1" max="99999" style="width:60px;"> Seconds<br>
+ <br><label><input type='checkbox' class='sd1' id="sdc">Send SMS text</label>
+  </p>  
+  <p class="box">Aurora:<br>
+  Set minimum KP level for alert: <select class='ar1' id="arx"><option value='1'>1</option><option value='2'>2</option><option value='3'>3</option><option value='4'>4</option><option value='5'>5</option><option value='6'>6</option><option value='7'>7</option><option value='8'>8</option><option value='9'>9</option></select><br><br>
+ <label><input type='radio' class='ar1' id="au0" value="0" name="au" checked>Silent</label>
+ <label><input type='radio' class='ar1' id="au1" value="1" name="au">Beep1</label>
+ <label><input type='radio' class='ar1' id="au2" value="2" name="au">Beep2</label>
+ <label><input type='radio' class='ar1' id="au3" value="3" name="au">Beep3</label>
+ <label><input type='radio' class='ar1' id="au4" value="4" name="au">Beep4</label>
+ <label><input type='radio' class='ar1' id="au5" value="5" name="au">Beep5</label><br>
+ Delay between beeps: <input type="number" id='auf' min="1" max="99999" style="width:60px;"> Seconds<br><br>
+ <label><input type='checkbox' class='ar1' id="auc">Send SMS text</label><br><br>
+ KP numbers provide an idea of your chance to see an aurora. KP5 to KP9 are storm levels (G1 to G5), this is typically the range you want. The higher the number, the stronger the storm! <br>Visit <a target='_blank' href='https://derben.ca/aurora'>Aurora Tracker</a> for more info.<br>
+  Please note; Aurora KP service will rely on the webserver providing the data.<br>
+ </p>
+ <p class="box">Temperature:<br>
+ Higher than: <input type='number' id='htv' min="-30" max="99" size="3">C<br>
+ Lower than: <input type='number' id='ltv' min="-30" max="99" size="3">C<br>
+ Sensor Range is -40c to 50c<br><br>
+ Abnormal high or low temperatures can also help detect fires or heating/cooling issues.<br>
+ <br>
+ <label><input type='radio' class='ht' id="tm0" value="0" name="ht" checked>Silent</label>
+ <label><input type='radio' class='ht' id="tm1" value="1" name="ht">Beep1</label>
+ <label><input type='radio' class='ht' id="tm2" value="2" name="ht">Beep2</label>
+ <label><input type='radio' class='ht' id="tm3" value="3" name="ht">Beep3</label>
+ <label><input type='radio' class='ht' id="tm4" value="4" name="ht">Beep4</label>
+ <label><input type='radio' class='ht' id="tm5" value="5" name="ht">Beep5</label><br>
+ Delay between beeps: <input type="number" id='htf' min="1" max="99999" style="width:60px;"> Seconds<br><br>
+ <label><input type='checkbox' class='ht' id="htc">Send SMS text</label><br> 
+ </p>
+ <p class="box">Humidity:<br>
+ Higher than: <input type='number' id='hhv' min="0" max="99" size="3">%<br>
+ Lower than: <input type='number' id='lhv' min="0" max="99" size="3">%<br>
+ Sensor Range is from 0% to 100%<br><br>
+ <label><input type='radio' class='hh' id="hm0" value="0" name="hh" checked>Silent</label>
+ <label><input type='radio' class='hh' id="hm1" value="1" name="hh">Beep1</label>
+ <label><input type='radio' class='hh' id="hm2" value="2" name="hh">Beep2</label>
+ <label><input type='radio' class='hh' id="hm3" value="3" name="hh">Beep3</label>
+ <label><input type='radio' class='hh' id="hm4" value="4" name="hh">Beep4</label>
+ <label><input type='radio' class='hh' id="hm5" value="5" name="hh">Beep5</label><br>
+ Delay between beeps: <input type="number" id='hhf' min="1" max="99999" style="width:60px;"> Seconds<br><br                                                                            >
+ <label><input type='checkbox' class='hh' id="hhc">Send SMS text</label>
+ </p>
+ <p class="box">Frequency of SMS:<br><input type='number' id='fos' min="0" max="1440" style="width:60px;"> Minutes<br><br>
+ Time to wait until next SMS text is sent. Use a lower number to get notified more often during an event.<br>
+ If you have a multiple events triggering (like a high temp alert and a smoke alert) at the same time, both messages will be combined into one SMS text.
+ </p><br>
+  <p><button onclick="alarm();">Save Alarms</button> when done making changes!
+</div>
+<div id="9" class="tabcontent">
+  <h3>SMS Setup</h3><p>
+  This is a paid service used to get a text message sent to your phone. You need to sign up to smsgateway for texts to work. See Alarms tab for options.<p>
+  
+ Get Account:
+  <a href='https://secure.smsgateway.ca' target='_blank'>https://secure.smsgateway.ca</a><br>
+  Click "Create one now" at the bottom. You want the API SMS - API1 choice.<br>
+  Texts are prepaid and do not expire. Costs about 2 cents CAD a text. (long texts or emojii will consume more texts.)<p>
+ Account KEY:<br>
+ <input type='text' id='smskey' minlength="8" maxlength="64"><p>
+ Main phone number:<br>
+ <input type='tel' id='smspn1' pattern="[0-9]{10}"><br>
+ Numbers only, please make sure the number is correct, you don't want to text the wrong person!<p>
+ Second phone number:<br>
+ <input type='tel' id='smspn2' pattern="[0-9]{10}"><br>
+ Sends a second text. Leave blank if not needed!
+ <p>
+<input type='button' value='Test SMS' onclick="sms(2);"> -- <button onclick="saved(['smskey','smspn1','smspn2']);">Save SMS</button><p>
+ <button type="button" onclick="sms(1);">Check remaining SMS</button> :  <font id="smsrem"></font><br><br>
+ <p>
+  [WiFi clock is not affiliated with smsgateway in any way]
+ <p>
+ <b>Advanced, Customize Provider:</b><br>
+(You shouldn't need to change these below)<p>
+ Tags to use:<br>
+ !d! for data for what was triggered<br>
+ !k! for the account key<br>
+ !p! for phone number<p>
+ 
+ SMS URL: <br>
+ <input type='text' id='smsurl' maxlength="64" value='https://secure.smsgateway.ca/services/message.svc/!k!/!p!'><br>
+ https://secure.smsgateway.ca/services/message.svc/!k!/!p!<p>
+
+ POST JSON Data:<br>
+ <textarea id="smspost" maxlength="64">{ "MessageBody":"Wifi Clock, !d!" }</textarea><br>
+ { "MessageBody":"Wifi Clock, !d!" }<p>
+  </p>
+  <p><button onclick="saved(['smsurl','smspost']);">Save Advanced</button> when done making changes!</form>
+</div>
+<div id="10" class="tabcontent">
+  <h3>Manually set time</h3><p>
+ No Wifi? You can manually set clock here.<p>
+ <input type='time' id='time'><p>
+ <input type='date' id='date'><p>
+ <input type="button" value="Set current time" onclick="gtd(1);"> 
+ <input type='button' value='Set Now' onclick="sett();"><p>
+ Remember, Wifi Clock has no battery, it's meant to be used with WiFi to keep accurate time. If the power goes out you have to set it again. Also, if WiFi is set up these values will be overridden when updated online.<p>
+ Also, be sure to set your timezone in the Main tab too!
+ </p>
+</div>
+<div id="11" class="tabcontent">
+  <h3>Beep Config</h3><p>
+ Enter as; note-duration,note-duration:<br>
+ Beep1:<input type='text' id='bp1' maxlength="40" class="bps"><br>
+ Beep2:<input type='text' id='bp2' maxlength="40" class="bps"><br>
+ Beep3:<input type='text' id='bp3' maxlength="40" class="bps"><br>
+ Beep4:<input type='text' id='bp4' maxlength="40" class="bps"><br>
+ Beep5:<input type='text' id='bp5' maxlength="40" class="bps"><br>
+ <br>
+ Syntax; note-duration,note-duration<br>
+ Example: B1-4,CS2-4,CS5-4,E5-8,F5-2<p>
+ Test here:<br>
+ <input type="button" Value="Beep1" onclick="tb(1);">
+ <input type="button" Value="Beep2" onclick="tb(2);">
+ <input type="button" Value="Beep3" onclick="tb(3);">
+ <input type="button" Value="Beep4" onclick="tb(4);">
+ <input type="button" Value="Beep5" onclick="tb(5);">
+
+ <p><button onclick="saved(['bp1','bp2','bp3','bp4','bp5']);">Save Sounds</button> when done making changes!
+ <p>Possible Notes:<br><div id="not"></div><p>Possible Durations: 1-9 (4=4th, 8=8th, etc)
+</div>
+
+
+<div id="12" class="tabcontent">
+
+  <div class="warning-box" style="background-color: #fff3cd; color: #856404; padding: 15px; border-radius: 4px; margin-bottom: 20px; border: 1px solid #ffeeba;">
+    <strong>Warning:</strong> Check with your board documentation to see what pins are safe to use for your specific ESP architecture. Avoid using hardware strapping pins or conflicting ADC blocks!
+  </div>
+
+  <p>Check the box to enable the component, then enter the corresponding physical GPIO pin number on your ESP:</p>
+
+  <form method="POST" action="/savepins">
+    <table style="width:100%; border-collapse: collapse; margin-bottom: 20px;">
+      <tr style="border-bottom: 1px solid #ddd; height: 40px;">
+        <td style="width: 5%; text-align: center;"><input type="checkbox" name="en_mq2" id="en_mq2"></td>
+        <td style="width: 45%;"><label for="en_mq2">MQ2 Smoke Sensor (Analog A0 pin)</label></td>
+        <td style="width: 50%;"><input type="number" name="pin_mq2" value="3" min="0" max="48" style="width: 80px; padding: 4px;"></td>
+      </tr>
+      <tr style="border-bottom: 1px solid #ddd; height: 40px;">
+        <td style="text-align: center;"><input type="checkbox" name="en_piezo" id="en_piezo"></td>
+        <td><label for="en_piezo">Piezo Buzzer (Audio Red pin)</label></td>
+        <td><input type="number" name="pin_piezo" value="5" min="0" max="48" style="width: 80px; padding: 4px;"></td>
+      </tr>
+      <tr style="border-bottom: 1px solid #ddd; height: 40px;">
+        <td style="text-align: center;"><input type="checkbox" name="en_ws2812" id="en_ws2812"></td>
+        <td><label for="en_ws2812">16x16 LED Matrix (DIN pin)</label></td>
+        <td><input type="number" name="pin_ws2812" value="7" min="0" max="48" style="width: 80px; padding: 4px;"></td>
+      </tr>
+      <tr style="border-bottom: 1px solid #ddd; height: 40px;">
+        <td style="text-align: center;"><input type="checkbox" name="en_ldr" id="en_ldr"></td>
+        <td><label for="en_ldr">LDR Light Sensor (Analog +pos pin)</label></td>
+        <td><input type="number" name="pin_ldr" value="9" min="0" max="48" style="width: 80px; padding: 4px;"></td>
+      </tr>
+      <tr style="border-bottom: 1px solid #ddd; height: 40px;">
+        <td style="text-align: center;"><input type="checkbox" name="en_motion" id="en_motion"></td>
+        <td><label for="en_motion">PIR Motion Sensor (Out pin)</label></td>
+        <td><input type="number" name="pin_motion" value="16" min="0" max="48" style="width: 80px; padding: 4px;"></td>
+      </tr>
+      <tr style="border-bottom: 1px solid #ddd; height: 40px;">
+        <td style="text-align: center;"><input type="checkbox" name="en_sda" id="en_sda"></td>
+        <td><label for="en_sda">AHT10 Temp/Humid (I2C SDA pin)</label></td>
+        <td><input type="number" name="pin_sda" value="33" min="0" max="48" style="width: 80px; padding: 4px;"></td>
+      </tr>
+      <tr style="border-bottom: 1px solid #ddd; height: 40px;">
+        <td style="text-align: center;"><input type="checkbox" name="en_scl" id="en_scl"></td>
+        <td><label for="en_scl">AHT10 Temp/Humid (I2C SCL pin)</label></td>
+        <td><input type="number" name="pin_scl" value="35" min="0" max="48" style="width: 80px; padding: 4px;"></td>
+      </tr>
+    </table>
+
+    <button type="submit" style="padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">Save Pin Configurations</button>
+  </form>
+
+  <p style="margin-top: 15px; font-size: 0.9em; color: #666;">
+    <strong>Note:</strong> Changing pin definitions will apply immediately on the next hardware initialization. If a device fails to initialize due to a pin conflict, use Access Point mode to correct it.
+  </p>
+     <div style="margin: 20px 0; padding: 10px; background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 4px;">
+      <input type="checkbox" name="lock_pins" id="lock_pins" value="1">
+      <label for="lock_pins"><strong>Permanently Lock & Hide Pins Tab:</strong> Checking this removes the tab from the menu to prevent hardware damage. (Requires a factory reset to change again!)<br>ONLY DO THIS AFTER YOU ARE DONE WITH WIRING AND YOU ARE SURE IT WORKS!</label>
+    </div>
+
+    <button type="submit" style="padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">Save Pin Configurations</button>
+  
+</div>
+
+ <p><br></p>
+<script>
+wfl=0;
+var dbug,dbtm;
+const tzo= {AB:'MST7MDT,M3.2.0,M11.1.0',BC:'PST8PDT,M3.2.0,M11.1.0',LB:'AST4ADT,M3.2.0,M11.1.0',MB:'CST6CDT,M3.2.0,M11.1.0',NB:'AST4ADT,M3.2.0,M11.1.0',NL:'NST3:30NDT,M3.2.0,M11.1.0',NS:'AST4ADT,M3.2.0,M11.1.0',NT:'MST7MDT,M3.2.0,M11.1.0',NU:'EST5EDT,M3.2.0,M11.1.0',ON:'EST5EDT,M3.2.0,M11.1.0',PE:'AST4ADT,M3.2.0,M11.1.0',QC:'EST5EDT,M3.2.0,M11.1.0',SK:'CST6',YT:'MST7',MA:''};
+const infoIt = setInterval(info, 5000);
+//clearInterval(infoIt); //Use to stop update
+const notz=["B0","C1","CS1","D1","DS1","E1","F1","FS1","G1","GS1","A1","AS1","B1","C2","CS2","D2","DS2","E2","F2","FS2","G2","GS2","A2","AS2","B2","C3","CS3","D3","DS3","E3","F3","FS3","G3","GS3","A3","AS3","B3","C4","CS4","D4","DS4","E4","F4","FS4","G4","GS4","A4","AS4","B4","C5","CS5","D5","DS5","E5","F5","FS5","G5","GS5","A5","AS5","B5","C6","CS6","D6","DS6","E6","F6","FS6","G6","GS6","A6","AS6","B6","C7","CS7","D7","DS7","E7","F7","FS7","G7","GS7","A7","AS7","B7","C8","CS8","D8","DS8"];
+tmp=""; //display possible notes.
+notz.forEach(function (item) { tmp+=item+","; });
+document.getElementById('not').innerHTML=tmp.slice(0, -1);
+
+frow=[
+ ["#00ff00","#00ff00","#00ff00","#00ff00","#00ff00","Manual"],
+ ["#ff0000","#ff8000","#ffff00","#00ff00","#0000ff","Rainbow"],
+ ["#eeeeee","#ecfe90","#fbff24","#ecfe90","#dddddd","NewYear"],
+ ["#ff0000","#ff00ff","#ff0000","#ff00ff","#ff0000","Valentine"],
+ ["#00ff00","#ffff00","#00ff00","#ffff00","#00ff00","Patrick"],
+ ["#DC8C73","#87DCC8","#8CDC8C","#AADC8C","#DC8C8C","Easter"],
+ ["#ff0000","#ffffff","#ff0000","#ffffff","#ff0000","Canada"],
+ ["#ff8000","#ffff00","#5A00AF","#ffff00","#ff8000","Halloween"],
+ ["#ff0000","#ffffff","#8c00ff","#6b6b6b","#ff0000","Remember"],
+ ["#ff8000","#eeeeee","#6b6b6b","#eeeeee","#ff8000","Truth"],
+ ["#00ff00","#ff0000","#00ff00","#ff0000","#00ff00","Christmas"],
+ ["#af4600","#d75000","#c86400","#e67300","#ff7f00","Sunset"],
+ ["#00ff00","#00ee00","#00cc00","#00aa00","#009900","Forest"],
+ ["#00ffff","#00ffbe","#006eff","#0006ff","#0000ff","Underwater"],
+ ["#ff00f7","#f000e8","#e901e2","#d100c0","#c20098","CalmPink"],
+ ["#00ff00","#80ff00","#ffff00","#ff8000","#ff0000","Fall"],
+ ["#bb00ff","#ce2c5c","#9fc19f","#2cc92c","#00ff00","Aurora"]
+];
+af=document.getElementById('afoco')
+frow.forEach(function (item,ii) {
+ var opt = document.createElement('option');
+ opt.value=ii;
+ opt.innerHTML=frow[ii][5];
+ af.appendChild(opt);
+});
+
+//init 
+document.getElementById('df').click(); //default tab
+gtd(); //default time
+info(1); ////ajax call to set all checks and inputs
+
+function debug(t){
+// use debug(time-in-ms,arg,arg,etc)
+ clearTimeout(dbtm);
+ if (!dbug){
+  dbug=document.createElement('div'); dbug.id="dbug";document.body.appendChild(dbug);
+ }
+ for (var x in arguments){
+  if (x!=0){dbug.innerHTML+=arguments[x]+'<br>';}
+ }
+ dbtm=setTimeout(function(){dbug.remove();dbug='';}, t);
+}
+function info(sx=0) { //update: sx=1 sets all, sx=0 info tab
+ ajax(-1,"/info",1,"i="+sx);
+}
+function tb(z){ //test beeps
+ let out="";
+ out=document.getElementById('bp'+z).value;
+ if (checks(out)=="") { ajax(-1,"/tb",1,"d="+out); }
+ else { debug(2000,'Test Beep'+z+' failed, bad string:\n'+b); }
+}
+function checks(out){
+ b="";
+ x=out.split(",").forEach(function (item) {
+  y=item.split("-");
+  if (notz.includes(y[0]) && (y[1]>0 && y[1]<10) ) {
+   //console.log(item, 'good');
+  } else { b+=item+" "; }
+ });
+ return b;
+}
+function sms(z){ //sms stuff
+ document.getElementById("smsrem").innerHTML = "";
+ let k=document.getElementById('smskey').value;
+ if (k=="") { debug(2000,'Error: No Key'); return; }
+
+ let out="t="+z+"&k="+k; // key
+ if (z==2){
+  if (p=="") { debug(2000,'Error: No Phone Number'); return; }
+  let p=document.getElementById('smspn1').value;
+  out+="&p="+p; //phone
+ }
+ if (z==1){ document.getElementById('smsrem').innerHTML="Please wait...";}
+ ajax(-1,"/sms",1,out);
+ setTimeout(function(){ ajax("smsrem","/sms",1,"t=0");  },8000);
+}
+function gtd(st=0){ //pull date from browser
+ dt=document.getElementById('date');
+ tm=document.getElementById('time');
+ da=new Date();
+ tm.value=da.getHours().toString().padStart(2, "0")+":"+da.getMinutes().toString().padStart(2, "0");
+ dt.value=da.getFullYear()+"-"+(da.getMonth()+1).toString().padStart(2, "0")+"-"+da.getDate().toString().padStart(2, "0");
+ if (st==1) { sett(); }
+}
+function sett(){ //ajax call to set time
+ tm=document.getElementById('time');
+ dt=document.getElementById('date');
+ out=Date.parse(tm.value+" "+dt.value).toString().slice(0, -3)
+ if (tm) { ajax(-1,"/dttm",1,"utc="+out); }
+}
+function marq(){
+ document.getElementById('mac').checked=true;
+ dt=document.getElementById('marquee');
+ if (dt) { ajax(-1,"/marq",1,"d="+dt.value); }
+}
+function kpc(){
+ //document.getElementById('hkp').value;
+ dt=document.getElementById('hkp').value;
+ console.log(dt);
+ if (dt) { ajax(-1,"/kpch",1,"d="+dt); }
+}
+function upd(n){ document.getElementById('STASSID').value=document.getElementById('wf'+n).name; document.getElementById("df").click(); }
+function tzc(){ document.getElementById('MyTZ').value=tzo[document.getElementById('MyTZsi').value]; }
+function oy(evt, ce) { //tab control
+  var i, tabcontent, tablinks;
+  tabcontent = document.getElementsByClassName('tabcontent');
+  for (i = 0; i < tabcontent.length; i++) { tabcontent[i].style.display = "none"; }
+  tablinks = document.getElementsByClassName('tablinks');
+  for (i = 0; i < tablinks.length; i++) {
+    tablinks[i].className = tablinks[i].className.replace(" active", "");
+  }
+  document.getElementById(ce).style.display = "block";
+  evt.currentTarget.className += " active";
+}
+function wifilist(){
+ document.getElementById('wflb').innerHTML ="Please wait...";
+ wfl=1; ajax("wifilist","/wifilist",1,"d=1");
+ setTimeout(function(){ ajax("wifilist","/wifilist",1,"d=0") },1500);
+}
+function alarm(){
+ a1="";
+ tmp=document.getElementById('a1t').value.split(":");
+ a1+=tmp[0]+","+tmp[1];
+ for (i=1;i<8;i++) { // checkboxes
+  //a1+=","+document.querySelector('input[name=a1]:checked').value;
+  a1+=document.getElementById('al'+i).checked==true ? ",1" : ",0";
+ }
+ a1+=",0,"+document.querySelector('input[name=a1]:checked').value;
+ a1+=document.getElementById('a1c').checked==true ? ",1" : ",0";
+ a1+=","+document.getElementById('a1f').value;
+ a2="";
+ tmp=document.getElementById('a2t').value.split(":");
+ a2+=tmp[0]+","+tmp[1]+",";
+ tmp=document.getElementById('a2d').value.split("-");
+ a2+=tmp[2]+","+tmp[1]+","+tmp[0]+",0";
+ a2+=","+document.querySelector('input[name=a2]:checked').value;
+ a2+=document.getElementById('a2c').checked==true ? ",1" : ",0";
+ a2+=","+document.getElementById('a2f').value;
+ ht="";
+ ht+=document.getElementById('htv').value+",";
+ ht+=document.getElementById('ltv').value+",0";
+ ht+=","+document.querySelector('input[name=ht]:checked').value;
+ ht+=document.getElementById('htc').checked==true ? ",1" : ",0";
+ ht+=","+document.getElementById('htf').value;
+ hh=""; 
+ hh+=document.getElementById('hhv').value+",";
+ hh+=document.getElementById('lhv').value+",0";
+ hh+=","+document.querySelector('input[name=hh]:checked').value;
+ hh+=document.getElementById('hhc').checked==true ? ",1" : ",0";
+ hh+=","+document.getElementById('hhf').value;
+ fos=document.getElementById('fos').value;
+ sd="";
+ sd+=document.getElementById('sdx').value+",0";
+ sd+=","+document.querySelector('input[name=sd]:checked').value;
+ sd+=document.getElementById('sdc').checked==true ? ",1" : ",0";
+ sd+=","+document.getElementById('sdf').value;
+ au="";
+ au+=document.getElementById('arx').value+",0";
+ au+=","+document.querySelector('input[name=au]:checked').value;
+ au+=document.getElementById('auc').checked==true ? ",1" : ",0";
+ au+=","+document.getElementById('auf').value;
+ out="alm1="+a1+"&alm2="+a2+"&mtem="+ht+"&mhum="+hh+"&alRL="+fos+"&msmk="+sd+"&maur="+au;
+ ajax(-1,"/saveForm",1,"t=alrm&"+out);
+}
+function saved(tn){
+ tmp="";
+ for (i=0;i<tn.length;i++){
+  tmt=document.getElementById(tn[i]);
+  //if (tn[i]=="MyTZsi"){ tt=tmt.selectedIndex.toString(); }
+  if (tmt.type=='select-one') { tt=tmt.selectedIndex.toString(); }
+  else if (tmt.type=='checkbox') { tt=tmt.checked ? '1':'0'; }
+  else { tt=tmt.value; }
+  //console.log(tn[i],"=",tt);
+  if (tn[i].substr(0,2)=="bp") {
+   if (checks(tt)) {
+    debug(2000,'Test Beep'+(i+1)+' failed, bad string:\n'+b); return;
+   }
+  }
+  if (tt!=""){
+   if (i>0){ tmp+="&"; }
+   //console.log(tn[i],"=",tt);
+   tmp+=tn[i]+"="+tt;
+  }
+ }
+ ajax(-1,"/saveForm",1,"t=data&"+tmp);
+}
+function savtog(){
+ tmp=document.getElementsByClassName('togs');
+ out=document.getElementById("mac").checked==true ? "1" : "0"; //-1
+ h24=document.getElementById("h24").checked==true ? "1" : "0";
+ hkp=document.getElementById("hkp").selectedIndex;
+ dec=document.getElementById("dec").checked==true ? "1" : "0";
+ for(i=0;i<tmp.length;i++){
+  out+=tmp[i].checked==true ? "1" : "0";
+ }
+ ajax(-1,"/saveForm",1,"t=togg&frames="+out+"&h24="+h24+"&hkp="+hkp+"&dec="+dec);
+}
+function foco(bl){
+ out="";
+ fsi=document.getElementById('afoco');
+ if (bl==0){ fsi.selectedIndex=0; }
+ else {
+  for (i=1;i<=5;i++){ //change all 5 colours
+   document.getElementById("f"+i).value=frow[fsi.selectedIndex][i-1];
+  }
+ }
+ 
+ for (i=1;i<=5;i++){ //get all 5 colours
+  tmp=document.getElementById("f"+i).value;
+  out+="&c="+tmp.slice(1);
+ }
+ 
+ ajax(-1,"/foco",1,"d="+bl+out);
+}
+function flmo(){ //flashlight mode
+ var tmpx=document.getElementById("flm").selectedIndex;
+ var tmpy=document.getElementById("flc").value;
+ //console.log(tmpx,tmpy);
+ ajax(-1,"/flmo",1,"flmo="+tmpx+"&flco="+tmpy.slice(1));
+}
+function tadj(){ //temp adj
+ bl=document.getElementById("tempadj").value;
+ //console.log(bl);
+ if (bl<21 && bl>-21) {
+  ajax(-1,"/tadj",1,"d="+bl);
+ }
+}
+function bright(bl){ //led brightness
+ ajax(-1,"/glow",1,"d="+bl);
+}
+function speed(bl){ //marq speed
+ ajax(-1,"/sped",1,"d="+bl);
+}
+function tog(tg){ //toggles
+ ajax(-1,"/togl",1,"d="+tg);
+}
+function ajax(id=-1,url,gp,data=""){ // gp 0=get, 1=post
+ const xhttp = new XMLHttpRequest();
+ xhttp.onerror = function(){ debug(2500,"Clock offline!"); }
+ xhttp.onload = function() {
+  if (wfl) {
+   wlf=0;
+   document.getElementById("wflb").innerHTML ="Refresh";
+  }
+  if (id!=-1) {
+   document.getElementById(id).innerHTML = this.responseText;
+  }else if (url!="/info" && this.responseText!="ok") {
+   //alert(this.responseText);
+   debug(2500,this.responseText);
+  }
+  if (url=="/info") {
+    let i=0;
+    tmp=this.responseText.split(";"); //se
+    document.getElementById("sigl").innerHTML=tmp[i];i++;
+    document.getElementById("adjtemp").innerHTML=(document.getElementById("tempadj").value*1)+(tmp[i]*1);
+    document.getElementById("temp").innerHTML=tmp[i];i++;
+    document.getElementById("humd").innerHTML=tmp[i];i++;
+    document.getElementById("smok").innerHTML=tmp[i];i++;
+    document.getElementById("aura").innerHTML=tmp[i];
+    stm=0;
+    if (tmp[i]>=5){ stm=1; }
+    if (tmp[i]>=6){ stm=2; }
+    if (tmp[i]>=7){ stm=3; }
+    if (tmp[i]>=8){ stm=4; }
+    if (tmp[i]>=9){ stm=5; }
+    document.getElementById("strm").innerHTML="G"+stm;i++;
+    document.getElementById("moon").innerHTML=tmp[i];i++;
+    //dateObj = new Date(tmp[i]*1000);
+    //h=dateObj.getUTCHours(); m=dateObj.getUTCMinutes(); s=dateObj.getSeconds();
+    d=tmp[i]/(3600*24); h=(d%1)*24; m=(h%1)*60; s=(m%1)*60;
+    d= d>0 ? Math.floor(d)+"d " : "";
+    h= h>0 ? Math.floor(h)+"h " : "";
+    m= m>0 ? Math.floor(m)+"m " : "";
+    s= s>0 ? Math.floor(s)+"s" : "";
+    document.getElementById("uptm").innerHTML=d+h+m+s;i++;
+    document.getElementById("fram").innerHTML=tmp[i];i++;
+    document.getElementById("odat").innerHTML=tmp[i];i++;
+    //console.log(i);
+    if (tmp.length>i){
+     document.getElementById("aglow").value=tmp[i];i++;
+     document.getElementById("amspd").value=tmp[i];i++;
+     document.getElementById("STASSID").value=tmp[i];i++;
+     document.getElementById("afoco").value=tmp[i];i++;
+     document.getElementById("tempadj").value=tmp[i];i++;
+     document.getElementById("STAPSK").value=tmp[i];i++;
+     document.getElementById("APPSK").value=tmp[i];i++;
+     
+     if (tmp[i][0]=="-") { //8
+      document.getElementById("mac").checked=true;
+      tmp[i]=tmp[i].slice(1); //trim the -
+     } else {
+      document.getElementById("mac").checked=false;
+     }
+     //8 toggle frames
+     //clearInterval(infoIt); //Use to stop update
+     //info(1) // get all
+     document.getElementById("wfs").checked=tmp[i][1]=="1" ? true:false;
+     document.getElementById("sht").checked=tmp[i][2]=="1" ? true:false;
+     document.getElementById("shh").checked=tmp[i][3]=="1" ? true:false;
+     document.getElementById("shd").checked=tmp[i][4]=="1" ? true:false;
+     document.getElementById("smk").checked=tmp[i][5]=="1" ? true:false;
+     document.getElementById("aur").checked=tmp[i][6]=="1" ? true:false;
+     document.getElementById("moo").checked=tmp[i][7]=="1" ? true:false;
+     //document.getElementById("wea").checked=tmp[i][8]=="1" ? true:false;
+     i++; //9 toggle
+     document.getElementById("h24").checked=tmp[i][0]=="1" ? true:false;
+     document.getElementById("dck").checked=tmp[i][1]=="1" ? true:false;
+     document.getElementById("flm").checked=tmp[i][2]=="1" ? true:false;
+     document.getElementById("dec").checked=tmp[i][3]=="1" ? true:false;
+     document.getElementById("hkp").selectedIndex=tmp[i][4];
+     i++; //10 main
+     document.getElementById("MyTZ").value=tmp[i];i++;
+     document.getElementById("MyTZsi").selectedIndex=tmp[i];i++;
+     //12 beep
+     document.getElementById("bp1").value=tmp[i];i++;
+     document.getElementById("bp2").value=tmp[i];i++;
+     document.getElementById("bp3").value=tmp[i];i++;
+     document.getElementById("bp4").value=tmp[i];i++;
+     document.getElementById("bp5").value=tmp[i];i++;
+     //15 info
+     document.getElementById("stip").innerHTML=tmp[i];i++;
+     document.getElementById("apip").innerHTML=tmp[i];i++;
+     //17 advanced
+     document.getElementById("APSSID").value=tmp[i];i++;
+     document.getElementById("HideAP").selectedIndex=tmp[i];i++;
+     //19 NTP
+     document.getElementById("NTP1").value=tmp[i];i++;
+     document.getElementById("NTP2").value=tmp[i];i++;
+     //21 display
+     document.getElementById("f1").value=tmp[i];i++;
+     document.getElementById("f2").value=tmp[i];i++;
+     document.getElementById("f3").value=tmp[i];i++;
+     document.getElementById("f4").value=tmp[i];i++;
+     document.getElementById("f5").value=tmp[i];i++;
+     //25
+     let arr=tmp[i].split(",");i++; //alarm1
+     document.getElementById("a1t").value=arr[0].padStart(2,0)+":"+arr[1].padStart(2,0);
+     for (ii=1;ii<8;ii++){
+      document.getElementById("al"+ii).checked=arr[1+ii]=="1"? true:false;
+     }
+     document.getElementById("a"+arr[10]).checked=true;
+     document.getElementById("a1c").checked=arr[11]=="1"? true:false;
+     document.getElementById("a1f").value=arr[12];
+
+     arr=tmp[i].split(",");i++; //alarm2
+     document.getElementById("a2t").value=arr[0].padStart(2,0)+":"+arr[1].padStart(2,0);
+     document.getElementById("a2d").value=arr[4].padStart(4,0)+"-"+arr[3].padStart(2,0)+"-"+arr[2].padStart(2,0);
+     document.getElementById("b"+arr[6]).checked=true;
+     document.getElementById("a2c").checked=arr[7]=="1"? true:false;
+     document.getElementById("a2f").value=arr[8];
+
+     arr=tmp[i].split(",");i++; //humd
+     document.getElementById("hhv").value=arr[0];
+     document.getElementById("lhv").value=arr[1];
+     document.getElementById("hm"+arr[3]).checked=true;
+     document.getElementById("hhc").checked=arr[4]=="1"? true:false;
+     document.getElementById("hhf").value=arr[5];
+
+     arr=tmp[i].split(",");i++; //temp
+     document.getElementById("htv").value=arr[0];
+     document.getElementById("ltv").value=arr[1];
+     document.getElementById("tm"+arr[3]).checked=true;
+     document.getElementById("htc").checked=arr[4]=="1"? true:false;
+     document.getElementById("htf").value=arr[5];
+     
+     arr=tmp[i].split(",");i++; //smokeD
+     document.getElementById("sd"+arr[2]).checked=true;
+     document.getElementById("sdc").checked=arr[3]=="1"? true:false;
+     document.getElementById("sdx").value=arr[0];
+     document.getElementById("sdf").value=arr[4];
+
+     arr=tmp[i].split(",");i++; //freq
+     document.getElementById("fos").value=arr[0];
+
+     arr=tmp[i].split(",");i++; //aur
+     document.getElementById("au"+arr[2]).checked=true;
+     document.getElementById("auc").checked=arr[3]=="1"? true:false;
+     document.getElementById("arx").selectedIndex=arr[0]-1;
+     document.getElementById("auf").value=arr[4];
+     
+     //SMS
+     document.getElementById("smskey").value=tmp[i];i++;
+     document.getElementById("smspn1").value=tmp[i];i++;
+     document.getElementById("smspn2").value=tmp[i];i++;
+     document.getElementById("smsurl").value=tmp[i];i++;
+     document.getElementById("smspost").value=tmp[i];i++;
+    }
+   }
+  }
+  if (gp){
+   xhttp.open("POST", url);
+   xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+   xhttp.send(data);
+  } else {
+   xhttp.open("GET", url, true);
+   xhttp.send();
+  }
+}
+</script>
+<p>Want to buy me a burger? <a href="https://paypal.me/DerBen3D">(Donate burger)</a><br></p>
+<!--<a href="/wifisig">wifi signal</a>-->
+</center></body></html>
