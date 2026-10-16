@@ -495,14 +495,14 @@ String writeFile(const char* path, const char* message) {
   if (tmp != message) {
     File f = LittleFS.open(String(path), "w");
     if (!f) {
-      Serial.println(F("!Err open write ") + String(path));
+      Serial.print(F("!Err open write ")); Serial.println(path);
       out = "Fail";
     } else {
       if (f.print(message)) {
-        Serial.println(F("wrote ") + String(path));
+        Serial.print(F("wrote ")); Serial.println(path);
         out = "Saved";
       } else {
-        Serial.println(F("!fail ") + String(path));
+        Serial.print(F("!fail ")); Serial.println(path);
         out = "Failed";
       }
       f.close();
@@ -513,7 +513,7 @@ String writeFile(const char* path, const char* message) {
 
 String wifilist(AsyncWebServerRequest* request) {
   String pg = "";
-  const AsyncWebParameter* p = request->getParam(0);
+  const AsyncWebParameter* p = request->getParam((size_t)0);
   if (p->value() == "1") {
     // call scan in bg
     pg = "scanning";
@@ -544,21 +544,21 @@ String restartx(AsyncWebServerRequest* request) {
 }
 
 String dlfl(AsyncWebServerRequest* request) {  // delete file
-  const AsyncWebParameter* p = request->getParam(0);
+  const AsyncWebParameter* p = request->getParam((size_t)0);
   LittleFS.remove(p->value().c_str());
   return btfs;
 }
 
 String edfl(AsyncWebServerRequest* request) {  // edit file
-  const AsyncWebParameter* p = request->getParam(0);
+  const AsyncWebParameter* p = request->getParam((size_t)0);
   String data = readFile(p->value().c_str());
   return ed1 + data + ed2 + p->value().c_str() + ed3 +bm;
 }
 
 String sfile(AsyncWebServerRequest* request) {
-  const AsyncWebParameter* p = request->getParam(1);  // name
+  const AsyncWebParameter* p = request->getParam((size_t)1);  // name
   String tmp1 = String(p->value());
-  p = request->getParam(0);  // data
+  p = request->getParam((size_t)0);  // data
   String tmp2 = String(p->value());
   String data = writeFile(tmp1.c_str(), tmp2.c_str());
   data += bm; // back to menu
@@ -566,7 +566,7 @@ String sfile(AsyncWebServerRequest* request) {
 }
 
 String infox(AsyncWebServerRequest* request) {
-  const AsyncWebParameter* p = request->getParam(0);
+  const AsyncWebParameter* p = request->getParam((size_t)0);
   int full = p->value().toInt();
   String data;
   if (full == 2) { data += String(dck); }
@@ -654,7 +654,7 @@ String clrp(AsyncWebServerRequest* request) {  // clear/load img
   for (int y = 0; y < 16; y++) {
     for (int x = 0; x < 16; x++) {
       if (request->params() > 0) {
-        const AsyncWebParameter* p = request->getParam(ii);
+        const AsyncWebParameter* p = request->getParam((size_t)ii);
         String t1 = String(p->value()[0]);
         String t2 = String(p->value()[1]);
         String r = t1 + t2;
@@ -678,7 +678,7 @@ String dpxs(AsyncWebServerRequest* request) {  // draw line
   dck = 1;
   int qr, qb, qg, qx, qy;
   for (int ii = 0; ii < request->params(); ii++) {
-    const AsyncWebParameter* p = request->getParam(ii);
+    const AsyncWebParameter* p = request->getParam((size_t)ii);
     if (p->name() == "r") {
       qr = strtol(p->value().c_str(), NULL, 16);
     } else if (p->name() == "g") {
@@ -702,13 +702,13 @@ String dpxs(AsyncWebServerRequest* request) {  // draw line
 
 String dpx(AsyncWebServerRequest* request) {  // draw pixel on screen
   dck = 1;
-  const AsyncWebParameter* qx = request->getParam(0);
-  const AsyncWebParameter* qy = request->getParam(1);
-  const AsyncWebParameter* p = request->getParam(2);
+  const AsyncWebParameter* qx = request->getParam((size_t)0);
+  const AsyncWebParameter* qy = request->getParam((size_t)1);
+  const AsyncWebParameter* p = request->getParam((size_t)2);
   int qr = strtol(p->value().c_str(), NULL, 16);
-  p = request->getParam(3);
+  p = request->getParam((size_t)3);
   int qg = strtol(p->value().c_str(), NULL, 16);
-  p = request->getParam(4);
+  p = request->getParam((size_t)4);
   int qb = strtol(p->value().c_str(), NULL, 16);
 
   strip.SetPixelColor(XYz(qx->value().toInt(), qy->value().toInt()), RgbColor(qr, qg, qb));
@@ -717,7 +717,7 @@ String dpx(AsyncWebServerRequest* request) {  // draw pixel on screen
 }
 
 String dttm(AsyncWebServerRequest* request) {  // set date and time
-  const AsyncWebParameter* p = request->getParam(0);
+  const AsyncWebParameter* p = request->getParam((size_t)0);
   time_t rtc = p->value().toInt();
   timeval tv = { rtc, 0 };
   settimeofday(&tv, nullptr);
@@ -727,7 +727,7 @@ String dttm(AsyncWebServerRequest* request) {  // set date and time
 String togl(AsyncWebServerRequest* request) {  // toggle checks
   String message = "";
   for (uint8_t i = 0; i < request->params(); i++) {
-    const AsyncWebParameter* p = request->getParam(i);
+    const AsyncWebParameter* p = request->getParam((size_t)i);
     message += " " + p->name() + ": " + p->value() + "=";
     if (p->value() == "wfs") {
       frames[1] = !frames[1];
@@ -788,12 +788,12 @@ String togl(AsyncWebServerRequest* request) {  // toggle checks
 
 String flmo(AsyncWebServerRequest* request) {  // flashlight mode
   RgbColor tcol;
-  const AsyncWebParameter* p = request->getParam(0);
+  const AsyncWebParameter* p = request->getParam((size_t)0);
   if (p->name() == "flmo") {
     flm=p->value().toInt();
     if (flm==1) {
       dck = 1;  // disable clock
-      const AsyncWebParameter* p = request->getParam(1);
+      const AsyncWebParameter* p = request->getParam((size_t)1);
       String qr = p->value().substring(0, 2);
       String qg = p->value().substring(2, 4);
       String qb = p->value().substring(4, 6);
@@ -835,10 +835,10 @@ void setvar(String nam, String dat) {
 
 String saveForm(AsyncWebServerRequest* request) {
   char buf[15];
-  const AsyncWebParameter* p = request->getParam(0);
+  const AsyncWebParameter* p = request->getParam((size_t)0);
   String typ = p->value();
   for (int ii = 1; ii < request->params(); ii++) {
-    const AsyncWebParameter* p = request->getParam(ii);
+    const AsyncWebParameter* p = request->getParam((size_t)ii);
     strcpy(buf, "/");
     strcat(buf, p->name().c_str());
     if (p->value() == "-1") {  // delete file
@@ -859,25 +859,25 @@ String saveForm(AsyncWebServerRequest* request) {
 }
 
 String sped(AsyncWebServerRequest* request) {  // marq speed
-  const AsyncWebParameter* p = request->getParam(0);
+  const AsyncWebParameter* p = request->getParam((size_t)0);
   amspd[0] = p->value().toInt();
   return "ok";
 }
 
 String glow(AsyncWebServerRequest* request) {  // brightness aglow
-  const AsyncWebParameter* p = request->getParam(0);
+  const AsyncWebParameter* p = request->getParam((size_t)0);
   strip.SetLuminance(p->value().toInt());
   return "ok";
 }
 
 String tadj(AsyncWebServerRequest* request) {  // temp adjust
-  const AsyncWebParameter* p = request->getParam(0);
+  const AsyncWebParameter* p = request->getParam((size_t)0);
   tempadj = p->value().toInt();
   return "ok";
 }
 
 String tb(AsyncWebServerRequest* request) {  // test beep
-  const AsyncWebParameter* p = request->getParam(0);
+  const AsyncWebParameter* p = request->getParam((size_t)0);
   pn[0] = 0;  // reset play
   pbufr = p->value();
   return "ok";
@@ -887,7 +887,7 @@ String sms(AsyncWebServerRequest* request) {  // sms
   String ky, p1, p2, ty;
   String u, d, out;
   for (int ii = 0; ii < request->params(); ii++) {
-    const AsyncWebParameter* p = request->getParam(ii);
+    const AsyncWebParameter* p = request->getParam((size_t)ii);
     if (p->name() == "t") { ty = p->value(); }
     if (p->name() == "k") { ky = p->value(); }
     if (p->name() == "p") { p1 = p->value(); }
@@ -915,10 +915,10 @@ String sms(AsyncWebServerRequest* request) {  // sms
 }
 
 String foco(AsyncWebServerRequest* request) {  // font colour
-  const AsyncWebParameter* p = request->getParam(0);
+  const AsyncWebParameter* p = request->getParam((size_t)0);
   afoco = p->value().toInt();
   for (int i = 0; i < 5; i++) {
-    const AsyncWebParameter* p = request->getParam(i + 1);
+    const AsyncWebParameter* p = request->getParam((size_t)(i + 1));
     String qr = p->value().substring(0, 2);
     String qg = p->value().substring(2, 4);
     String qb = p->value().substring(4, 6);
@@ -933,7 +933,7 @@ String foco(AsyncWebServerRequest* request) {  // font colour
 }
 
 String newf(AsyncWebServerRequest* request) {
-  const AsyncWebParameter* p = request->getParam(0);
+  const AsyncWebParameter* p = request->getParam((size_t)0);
   writeFile(("/" + p->value()).c_str(), "");
   return "File created, refresh!";
 }
@@ -945,7 +945,7 @@ void notFound(AsyncWebServerRequest* request) {
 }
 
 String marq(AsyncWebServerRequest* request) {
-  const AsyncWebParameter* p = request->getParam(0);
+  const AsyncWebParameter* p = request->getParam((size_t)0);
   marqueue = "         " + p->value() + "     ";
   mpos[1] = 0;
   frames[0] = -1;
@@ -954,7 +954,7 @@ String marq(AsyncWebServerRequest* request) {
 
 String kpch(AsyncWebServerRequest* request) {
   if (request->params() > 0) {
-    const AsyncWebParameter* p = request->getParam(0);
+    const AsyncWebParameter* p = request->getParam((size_t)0);
     if (p != nullptr) {
       hkp = p->value().toInt();
     }
@@ -1076,11 +1076,11 @@ void setup() {
     RDF0 = readFile(xAPSSID, 2);
     RDF1 = readFile(xAPPSK, 2);
     String tmp = WiFi.softAP(RDF0.c_str(), RDF1.c_str(), 8, hide) ? "Ready" : "Failed";
-    Serial.println(F("AP: ") + tmp);
+    Serial.print(F("AP: ")); Serial.println(tmp);
     if (tmp == "Ready") {
       Serial.println(F("Clock Wifi AP:"));
-      Serial.println(F("APSSID: ") + RDF0);
-      Serial.println(F("APPSK: ") + RDF1);
+      Serial.print(F("APSSID: ")); Serial.println(RDF0);
+      Serial.print(F("APPSK: ")); Serial.println(RDF1);
       Serial.print(F("APIP: "));
       Serial.println(WiFi.softAPIP());
     }
@@ -1093,8 +1093,8 @@ void setup() {
     WiFi.begin(SID.c_str(), PSK.c_str());
     delay(100);
     Serial.println(F("Local Wifi:"));
-    Serial.println(F("SSID: ") + SID);
-    Serial.println(F("PSK: ") + PSK);
+    Serial.print(F("SSID: ")); Serial.println(SID);
+    Serial.print(F("PSK: ")); Serial.println(PSK);
     wfc[0] = 0;
     WiFi.status();
   }
@@ -1605,7 +1605,7 @@ void loop() {
         RDF0 = readFile(xMyTZ, 2);
         RDF1 = readFile(xNTP1, 2);
         RDF2 = readFile(xNTP2, 2);
-        configTime(RDF0.c_str(), RDF1.c_str(), RDF2.c_str());
+        configTzTime(RDF0.c_str(), RDF1.c_str(), RDF2.c_str());
         now = time(nullptr);
         drwifi(); strip.Show();
         while (now < 8 * 3600 * 2) {
